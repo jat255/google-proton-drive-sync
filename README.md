@@ -7,12 +7,55 @@ Bidirectional sync between a Google Drive folder and a Proton Drive folder.
 ## Prerequisites
 
 - Node.js 20+
-- [`proton-drive-cli`](../proton-drive-cli) installed and logged in (`proton-drive login`)
-- A Google Cloud project with the Drive API enabled
+- A Google Cloud project with the Drive API enabled (see setup below)
 
 ## Setup
 
-### 1. Google Cloud credentials
+### 1. Clone both repos
+
+This tool imports directly from `proton-drive-cli` source, so both repos must live in the same parent directory.
+
+```bash
+mkdir ~/your-projects && cd ~/your-projects
+
+git clone https://github.com/jat255/proton-drive-cli.git
+git clone https://github.com/jat255/google-proton-drive-sync.git
+```
+
+Your directory structure should look like:
+
+```
+your-projects/
+  proton-drive-cli/
+  google-proton-drive-sync/
+```
+
+### 2. Build and install proton-drive-cli
+
+```bash
+cd proton-drive-cli
+npm install
+npm run build
+npm link        # makes `proton-drive` available globally
+```
+
+### 3. Install google-proton-drive-sync
+
+```bash
+cd ../google-proton-drive-sync
+npm install
+npm link        # makes `gdrive-proton-sync` available globally
+```
+
+### 4. Authenticate with Proton
+
+```bash
+gdrive-proton-sync auth-proton
+```
+
+Or, if you already use `proton-drive-cli` directly, your existing session works automatically -- no extra step needed.
+
+### 5. Google Cloud credentials
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) and create or select a project.
 2. Enable the **Google Drive API** (APIs & Services → Enable APIs → search "Drive API").
@@ -25,54 +68,42 @@ Bidirectional sync between a Google Drive folder and a Proton Drive folder.
    - Add `http://localhost:3000` as an authorized redirect URI.
    - Download the JSON and save it to `~/.config/gdrive-proton-sync/credentials.json`.
 
-### 2. Config file
-
-Copy the example config and fill in your values:
+### 6. Config file
 
 ```bash
 cp config.example.json config.json
 ```
 
+Edit `config.json` with your values:
+
 | Field | Description |
 |-------|-------------|
 | `gdriveFolderId` | The folder ID from the GDrive URL: `.../folders/<ID>` |
 | `protonFolderPath` | Proton Drive path to sync into, e.g. `Sync/GoogleDrive` |
-| `googleCredentialsPath` | Path to the OAuth credentials JSON (default shown) |
+| `googleCredentialsPath` | Path to the OAuth credentials JSON (default: `~/.config/gdrive-proton-sync/credentials.json`) |
 | `googleTokenPath` | Where the auth token will be saved after `auth` (default shown) |
 | `statePath` | Where sync state is persisted between runs (default shown) |
+| `protonConfigPath` | Proton session file (default: `~/.config/proton-drive/session.json`) |
+| `concurrency` | Number of files to transfer in parallel (default: `4`) |
+| `ignore` | List of file/folder name patterns to skip, e.g. `[".playwright-mcp", "*.tmp"]` |
 
-### 3. Install the global CLI
-
-```bash
-npm install
-npm link
-```
-
-This installs `gdrive-proton-sync` as a global command.
-
-### 4. Authenticate with Google
+### 7. Authenticate with Google
 
 ```bash
 gdrive-proton-sync auth
 ```
 
-This opens a browser for OAuth consent. After approving, the token is saved automatically and you won't need to repeat this unless the token is revoked.
+This opens a browser for OAuth consent. After approving, the token is saved automatically and you won't need to repeat this step unless the token is revoked.
 
-To authenticate with a different Proton account than the one already logged in via `proton-drive login`:
-
-```bash
-gdrive-proton-sync auth-proton
-```
-
-### 5. Run a sync
+### 8. Run a sync
 
 ```bash
-gdrive-proton-sync sync                   # sync both sides
-gdrive-proton-sync sync --dry-run         # preview changes without applying
-gdrive-proton-sync sync --delete          # also propagate deletions across sides
+gdrive-proton-sync sync                     # sync both sides
+gdrive-proton-sync sync --dry-run           # preview changes without applying
+gdrive-proton-sync sync --delete            # also propagate deletions across sides
 gdrive-proton-sync sync --dry-run --delete  # preview with deletion propagation
-gdrive-proton-sync download               # download local copies of both drives
-gdrive-proton-sync download -o ~/Backups  # download to a custom directory
+gdrive-proton-sync download                 # download local copies of both drives
+gdrive-proton-sync download -o ~/Backups    # download to a custom directory
 ```
 
 ## Sync behavior
@@ -83,4 +114,4 @@ gdrive-proton-sync download -o ~/Backups  # download to a custom directory
 - **Deletion** → only propagated when `--delete` is passed. Without it, deleted files are left on the surviving side.
 - **Google Workspace files** (Docs, Sheets, Slides, etc.) are synced as `.url` shortcut files that open the document in the browser when clicked.
 
-Sync state is stored in `~/.config/gdrive-proton-sync/state.json`. Deleting this file will cause the next run to treat all files as new (GDrive wins on any size conflict).
+Sync state is stored at the path configured in `statePath` (default `~/.config/gdrive-proton-sync/state.json`). Deleting this file causes the next run to treat all files as new (GDrive wins on any size conflict).
