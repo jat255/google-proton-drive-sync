@@ -1,0 +1,10 @@
+{
+  "gdriveFolderId": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms",
+  "protonFolderPath": "Sync/GoogleDrive",
+  "googleCredentialsPath": "~/.config/gdrive-proton-sync/credentials.json",
+  "googleTokenPath": "~/.config/gdrive-proton-sync/token.json",
+  "statePath": "~/.config/gdrive-proton-sync/state.json",
+  "protonConfigPath": "~/.config/proton-drive/session.json",
+  "concurrency": 4,
+  "ignore": [".playwright-mcp", "node_modules", "*.tmp"]
+}

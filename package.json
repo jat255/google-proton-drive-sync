@@ -1,0 +1,22 @@
+{
+  "name": "google-proton-drive-sync",
+  "version": "0.1.0",
+  "type": "commonjs",
+  "bin": {
+    "gdrive-proton-sync": "bin/gdrive-proton-sync"
+  },
+  "scripts": {
+    "sync": "tsx src/index.ts sync",
+    "auth": "tsx src/index.ts auth"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "googleapis": "^144.0.0"
+  },
+  "devDependencies": {
+    "@protontech/drive-sdk": "^0.14.10",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}

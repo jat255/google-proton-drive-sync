@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+const { spawnSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+// realpathSync resolves symlinks so this works correctly after `npm link`
+const root = path.resolve(fs.realpathSync(__dirname), '..');
+const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
+const entry = path.join(root, 'src', 'index.ts');
+
+const result = spawnSync(tsx, [entry, ...process.argv.slice(2)], { stdio: 'inherit' });
+process.exit(result.status ?? 0);
