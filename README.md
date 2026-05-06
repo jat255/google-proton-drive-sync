@@ -2,6 +2,8 @@
 
 Bidirectional sync between a Google Drive folder and a Proton Drive folder.
 
+> **Warning:** This tool is vibe coded for personal use. It has not been audited, thoroughly tested, or hardened for production. Use at your own risk -- always keep independent backups of important files.
+
 ## Prerequisites
 
 - Node.js 20+
@@ -39,21 +41,38 @@ cp config.example.json config.json
 | `googleTokenPath` | Where the auth token will be saved after `auth` (default shown) |
 | `statePath` | Where sync state is persisted between runs (default shown) |
 
-### 3. Authenticate with Google
+### 3. Install the global CLI
 
 ```bash
-npm run auth
+npm install
+npm link
+```
+
+This installs `gdrive-proton-sync` as a global command.
+
+### 4. Authenticate with Google
+
+```bash
+gdrive-proton-sync auth
 ```
 
 This opens a browser for OAuth consent. After approving, the token is saved automatically and you won't need to repeat this unless the token is revoked.
 
-### 4. Run a sync
+To authenticate with a different Proton account than the one already logged in via `proton-drive login`:
 
 ```bash
-npm run sync                   # sync both sides
-npm run sync -- --dry-run      # preview changes without applying
-npm run sync -- --delete       # also propagate deletions across sides
-npm run sync -- --dry-run --delete  # preview with deletion propagation
+gdrive-proton-sync auth-proton
+```
+
+### 5. Run a sync
+
+```bash
+gdrive-proton-sync sync                   # sync both sides
+gdrive-proton-sync sync --dry-run         # preview changes without applying
+gdrive-proton-sync sync --delete          # also propagate deletions across sides
+gdrive-proton-sync sync --dry-run --delete  # preview with deletion propagation
+gdrive-proton-sync download               # download local copies of both drives
+gdrive-proton-sync download -o ~/Backups  # download to a custom directory
 ```
 
 ## Sync behavior
@@ -62,6 +81,6 @@ npm run sync -- --dry-run --delete  # preview with deletion propagation
 - **File changed on one side** (detected by size difference vs. last sync) → copied to the other side.
 - **Conflict** (both sides changed since last sync) → Proton Drive wins. The GDrive file is renamed to `name.conflict-backup-<timestamp>.ext` before being overwritten.
 - **Deletion** → only propagated when `--delete` is passed. Without it, deleted files are left on the surviving side.
-- **Google Workspace files** (Docs, Sheets, Slides, etc.) are skipped with a warning — they have no downloadable binary format.
+- **Google Workspace files** (Docs, Sheets, Slides, etc.) are synced as `.url` shortcut files that open the document in the browser when clicked.
 
 Sync state is stored in `~/.config/gdrive-proton-sync/state.json`. Deleting this file will cause the next run to treat all files as new (GDrive wins on any size conflict).
